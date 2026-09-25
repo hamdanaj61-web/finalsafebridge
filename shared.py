@@ -9,13 +9,16 @@ def render_login(login_fn):
     st.markdown(f"""
     <div style="padding: 1.5rem 0 1.25rem 0; border-bottom: 1px solid #E5E7EB; margin-bottom: 1.75rem;">
         <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.5rem;">
-            {school_mark_svg(36)}
+            <img src="app/static/dps-rak-logo.png" style="width: 48px; height: 48px; object-fit: contain;" alt="Delhi Private School, Ras Al Khaimah logo" />
             <div>
                 <h1 style="font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: #111827;">SafeBridge</h1>
             </div>
         </div>
         <p style="font-size: 0.95rem; color: #6B7280; margin: 0; line-height: 1.45;">
             A private, human-led space to ask for support or raise a concern.
+        </p>
+        <p style="font-size: 0.8rem; color: #9CA3AF; margin: 0.35rem 0 0 0;">
+            Built for Delhi Private School, Ras Al Khaimah.
         </p>
     </div>
     """, unsafe_allow_html=True)
