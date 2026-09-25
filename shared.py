@@ -5,7 +5,7 @@ from database import create_report, get_setting
 from icons import icon_svg, school_mark_svg
 
 def render_login(login_fn):
-    # ── Calm, bright header on white background (no colored gradient banner) ──
+    # ── Calm, bright header with the real school crest ──
     st.markdown(f"""
     <div style="padding: 1.5rem 0 1.25rem 0; border-bottom: 1px solid #E5E7EB; margin-bottom: 1.75rem;">
         <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.5rem;">
@@ -27,10 +27,10 @@ def render_login(login_fn):
 
     cols = st.columns(4)
 
-    # 1. Student card — blue identity color
+    # 1. Student card — blue
     with cols[0]:
         st.markdown(f"""
-        <div class='card'>
+        <div class='card accent-blue'>
             <div class="sb-icon-chip blue">{icon_svg("user", size=20)}</div>
             <h3>Student</h3>
             <p class='muted'>Wellbeing tools, check-ins, and appointments</p>
@@ -39,10 +39,10 @@ def render_login(login_fn):
         if st.button("Continue", key="role_btn_student", use_container_width=True):
             st.session_state.login_role = "student"
 
-    # 2. Counselor card — purple identity color
+    # 2. Counselor card — purple
     with cols[1]:
         st.markdown(f"""
-        <div class='card'>
+        <div class='card accent-purple'>
             <div class="sb-icon-chip purple">{icon_svg("compass", size=20)}</div>
             <h3>Counselor</h3>
             <p class='muted'>Review concerns and support students</p>
@@ -51,10 +51,10 @@ def render_login(login_fn):
         if st.button("Continue", key="role_btn_counselor", use_container_width=True):
             st.session_state.login_role = "counselor"
 
-    # 3. Administrator card — amber identity color
+    # 3. Administrator card — amber
     with cols[2]:
         st.markdown(f"""
-        <div class='card'>
+        <div class='card accent-amber'>
             <div class="sb-icon-chip amber">{icon_svg("chart", size=20)}</div>
             <h3>Administrator</h3>
             <p class='muted'>Privacy-preserving analytics and settings</p>
@@ -63,7 +63,7 @@ def render_login(login_fn):
         if st.button("Continue", key="role_btn_admin", use_container_width=True):
             st.session_state.login_role = "admin"
 
-    # 4. Anonymous Reporting card — green identity color (its own tinted card)
+    # 4. Anonymous Reporting card — green (its own tinted highlight card)
     allow_anon = get_setting("allow_anonymous_reports", "1") == "1"
     with cols[3]:
         if allow_anon:

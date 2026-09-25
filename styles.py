@@ -118,7 +118,14 @@ def apply_styles():
     [data-testid="stMetric"] {
         background: #FFFFFF !important; border: 1px solid var(--sb-border) !important;
         border-radius: 12px !important; padding: 0.9rem 1.1rem !important; box-shadow: none !important;
+        border-top: 4px solid var(--sb-faint) !important;
     }
+    /* Auto-color metric cards by position within a row of columns — applies
+       to every dashboard/overview page without needing per-page edits */
+    [data-testid="column"]:nth-of-type(4n+1) [data-testid="stMetric"] { border-top-color: var(--sb-blue) !important; }
+    [data-testid="column"]:nth-of-type(4n+2) [data-testid="stMetric"] { border-top-color: var(--sb-purple) !important; }
+    [data-testid="column"]:nth-of-type(4n+3) [data-testid="stMetric"] { border-top-color: var(--sb-amber) !important; }
+    [data-testid="column"]:nth-of-type(4n+4) [data-testid="stMetric"] { border-top-color: var(--sb-teal) !important; }
     [data-testid="stMetricLabel"] p { font-size: 0.82rem !important; font-weight: 500 !important; color: var(--sb-muted) !important; text-transform: capitalize; }
     [data-testid="stMetricValue"] div { font-size: 1.6rem !important; font-weight: 700 !important; color: var(--sb-ink) !important; }
 
