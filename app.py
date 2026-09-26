@@ -7,9 +7,21 @@ import streamlit as st
 import importlib
 import auth as auth_module
 import database as database_module
+import styles as styles_module
+import views.guided_report as guided_report_module
+import views.shared as shared_module
+import views.student as student_module
+import views.counselor as counselor_module
+import views.admin as admin_module
 
 importlib.reload(database_module)
 importlib.reload(auth_module)
+importlib.reload(styles_module)
+importlib.reload(guided_report_module)
+importlib.reload(shared_module)
+importlib.reload(student_module)
+importlib.reload(counselor_module)
+importlib.reload(admin_module)
 
 from auth import init_session, login, logout, change_password
 from database import init_db, is_supabase_connected
@@ -47,11 +59,8 @@ def _check_session_timeout():
 # ── Sidebar Branding (Logo mark, school name, sentence case, no emoji) ───────
 with st.sidebar:
     logo = os.getenv("SCHOOL_LOGO_PATH")
-    default_logo = Path(__file__).parent / "static" / "dps-rak-logo.png"
     if logo and Path(logo).is_file():
-        st.image(logo, width=48)
-    elif default_logo.is_file():
-        st.image(str(default_logo), width=48)
+        st.image(logo, width=40)
     else:
         st.markdown(school_mark_svg(40), unsafe_allow_html=True)
 
