@@ -1,5 +1,5 @@
 """Administrator portal views: aggregated insights, pseudonymized user accounts, platform settings, QR access, and exports.
-Zero emoji, outline SVG icons, flat card styling, sentence case throughout.
+Vibrant modern aesthetics with privacy-preserving oversight.
 """
 import io
 from datetime import datetime, timezone
@@ -16,9 +16,9 @@ def render_admin(user):
         format_func=lambda x: {
             "Dashboard": "Dashboard",
             "Users":     "User management",
-            "Settings":  "Settings",
-            "QR access": "QR access",
-            "Export":    "Export",
+            "Settings":  "Platform settings",
+            "QR access": "QR quick access",
+            "Export":    "Export analytics",
         }[x],
     )
     if page == "Dashboard": dashboard()
@@ -27,12 +27,16 @@ def render_admin(user):
     elif page == "QR access": qr_page()
     else: export_page()
 
-# ── Dashboard (Aggregated Trends, Flat Metric Cards) ──────────────────────────
+# ── Dashboard (Aggregated Trends, Elevated Metric Cards) ──────────────────────
 def dashboard():
-    st.markdown("""
-    <div style="padding: 1.25rem 0 1rem 0; border-bottom: 1px solid #E5E7EB; margin-bottom: 1.5rem;">
-        <h1 style="font-size: 1.6rem; font-weight: 700; margin: 0 0 0.25rem 0; color: #111827;">School wellbeing insights</h1>
-        <p style="font-size: 0.95rem; color: #6B7280; margin: 0;">Aggregated school trends only. No student conversations or identifying report details are displayed.</p>
+    st.markdown(f"""
+    <div class="sb-page-header">
+        <div class="sb-pill-badge">
+            {icon_svg("chart", size=14, color="#4F46E5")}
+            <span>Administrative Safeguarding Oversight</span>
+        </div>
+        <h1>School wellbeing insights</h1>
+        <p>Aggregated school trends only. No student conversations or identifying report details are displayed.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -48,7 +52,7 @@ def dashboard():
         with c:
             st.metric(label, v)
 
-    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 1.8rem;'></div>", unsafe_allow_html=True)
     categories = query("SELECT category, count(*) AS count FROM reports GROUP BY category ORDER BY count DESC")
     locations = query("SELECT location, count(*) AS count FROM reports GROUP BY location ORDER BY count DESC")
     wellbeing = query("SELECT week_start,round(avg(mood),2) AS wellbeing FROM checkins GROUP BY week_start ORDER BY week_start")
@@ -67,19 +71,26 @@ def dashboard():
         else:
             st.caption("No location data recorded yet.")
 
-    st.markdown("<div style='margin-top: 1.25rem;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
     st.subheader("Weekly wellbeing trend")
     if wellbeing:
         st.line_chart(pd.DataFrame(wellbeing).set_index('week_start'))
     else:
         st.caption("No weekly wellbeing check-in data yet.")
 
-# ── User Management (Pseudonymized, 10+ char passwords, sentence case) ────────
+# ── User Management ──────────────────────────────────────────────────────────
 def users_page(current_admin):
-    st.markdown("""
-    <div style="padding: 1rem 0 0.8rem 0; border-bottom: 1px solid #E5E7EB; margin-bottom: 1.25rem;">
-        <h2 style="font-size: 1.35rem; font-weight: 700; margin: 0; color: #111827;">User management</h2>
-        <p style="font-size: 0.9rem; color: #6B7280; margin: 0.25rem 0 0 0;">Provision user credentials, reset passwords, and manage active status.</p>
+    st.markdown(f"""
+    <div style="padding: 1.2rem 0 1rem 0; border-bottom: 1px solid var(--sb-border); margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="sb-icon-box" style="width: 40px; height: 40px;">
+                {icon_svg("user", size=22, color="#4F46E5")}
+            </div>
+            <div>
+                <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: #0F172A;">User management</h2>
+                <p style="font-size: 0.92rem; color: #64748B; margin: 0.15rem 0 0 0;">Provision user credentials, reset passwords, and manage active account access.</p>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -87,7 +98,7 @@ def users_page(current_admin):
     st.markdown(f"""
     <div class="sb-notice-block">
         <div class="sb-notice-title">
-            {icon_svg("lock", size=18, color="#4B5563")}
+            {icon_svg("lock", size=18, color="#4F46E5")}
             <span>Student pseudonymization policy</span>
         </div>
         <div class="sb-notice-body">
@@ -100,13 +111,12 @@ def users_page(current_admin):
     users = query("SELECT id, username, display_name, role, active, created_at FROM students ORDER BY role, display_name")
     if users:
         df = pd.DataFrame(users).copy()
-        # Sentence-case status text badges without emoji
         df["status"] = df["active"].map({1: "Active", 0: "Inactive"})
         df_disp = df[["id", "username", "display_name", "role", "status", "created_at"]].copy()
         df_disp.columns = ["ID", "Username", "Pseudonym / Handle", "Role", "Status", "Created at"]
         st.dataframe(df_disp, use_container_width=True, hide_index=True)
 
-    st.markdown("<div style='margin-top: 1.25rem;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
 
     # ── Create new user ──────────────────────────────────────────────────────
     with st.expander("Create new user", expanded=False):
@@ -153,7 +163,7 @@ def users_page(current_admin):
 
     with col1:
         with st.form("reset_password_form"):
-            st.markdown("<p style='font-size: 0.9rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'>Reset password</p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size: 0.92rem; font-weight: 700; color: #1E293B; margin-bottom: 0.5rem;'>Reset password</p>", unsafe_allow_html=True)
             new_pw = st.text_input("New password (minimum 10 characters)", type="password")
             conf_pw = st.text_input("Confirm new password", type="password")
             reset = st.form_submit_button("Update password", type="primary")
@@ -168,7 +178,7 @@ def users_page(current_admin):
                 st.success("Password updated. User must change it upon next login.")
 
     with col2:
-        st.markdown("<p style='font-size: 0.9rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'>Account access</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 0.92rem; font-weight: 700; color: #1E293B; margin-bottom: 0.5rem;'>Account access</p>", unsafe_allow_html=True)
         is_active = bool(selected.get("active", 1))
         if selected_id == current_admin['id']:
             st.caption("You cannot deactivate your own active session account.")
@@ -179,12 +189,19 @@ def users_page(current_admin):
                 st.success(f"Account {'deactivated' if is_active else 'reactivated'}.")
                 st.rerun()
 
-# ── Settings Page: Grouped Visually with Labeled Sections & Dividers ─────────
+# ── Settings Page ────────────────────────────────────────────────────────────
 def settings_page():
-    st.markdown("""
-    <div style="padding: 1rem 0 0.8rem 0; border-bottom: 1px solid #E5E7EB; margin-bottom: 1.25rem;">
-        <h2 style="font-size: 1.35rem; font-weight: 700; margin: 0; color: #111827;">Platform settings</h2>
-        <p style="font-size: 0.9rem; color: #6B7280; margin: 0.25rem 0 0 0;">School-wide configurations for reporting access, counselor tools, and data retention.</p>
+    st.markdown(f"""
+    <div style="padding: 1.2rem 0 1rem 0; border-bottom: 1px solid var(--sb-border); margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="sb-icon-box" style="width: 40px; height: 40px;">
+                {icon_svg("settings", size=22, color="#4F46E5")}
+            </div>
+            <div>
+                <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: #0F172A;">Platform settings</h2>
+                <p style="font-size: 0.92rem; color: #64748B; margin: 0.15rem 0 0 0;">School-wide configurations for reporting access, counselor tools, and data retention.</p>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -243,12 +260,19 @@ def settings_page():
         st.success(f"Cleanup complete. {purged} resolved report(s) older than {new_days} days were purged.")
     st.caption("A scheduled daily OS-level cron job on the production server runs this lifecycle purge automatically.")
 
-# ── QR Access Page: Flat Card Styling ────────────────────────────────────────
+# ── QR Access Page ──────────────────────────────────────────────────────────
 def qr_page():
-    st.markdown("""
-    <div style="padding: 1rem 0 0.8rem 0; border-bottom: 1px solid #E5E7EB; margin-bottom: 1.25rem;">
-        <h2 style="font-size: 1.35rem; font-weight: 700; margin: 0; color: #111827;">Student QR access</h2>
-        <p style="font-size: 0.9rem; color: #6B7280; margin: 0.25rem 0 0 0;">Generate and download quick-access QR codes for school posters or student planners.</p>
+    st.markdown(f"""
+    <div style="padding: 1.2rem 0 1rem 0; border-bottom: 1px solid var(--sb-border); margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="sb-icon-box" style="width: 40px; height: 40px;">
+                {icon_svg("qr", size=22, color="#4F46E5")}
+            </div>
+            <div>
+                <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: #0F172A;">Student QR access</h2>
+                <p style="font-size: 0.92rem; color: #64748B; margin: 0.15rem 0 0 0;">Generate and download quick-access QR codes for school posters or student planners.</p>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -258,19 +282,26 @@ def qr_page():
         image = qrcode.make(url)
         buf = io.BytesIO()
         image.save(buf, format="PNG")
-        st.markdown("<div class='card' style='max-width: 320px; text-align: center;'>", unsafe_allow_html=True)
+        st.markdown("<div class='card' style='max-width: 320px; text-align: center; margin: 1rem auto;'>", unsafe_allow_html=True)
         st.image(buf.getvalue(), width=240)
-        st.download_button("Download QR code", buf.getvalue(), "safebridge-student-qr.png", "image/png", type="primary")
+        st.download_button("Download QR code", buf.getvalue(), "safebridge-student-qr.png", "image/png", type="primary", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
     except ImportError:
         st.warning("QR generation library not available.")
 
-# ── Export Analytics: Flat Styling, Sentence Case ────────────────────────────
+# ── Export Analytics ────────────────────────────────────────────────────────
 def export_page():
-    st.markdown("""
-    <div style="padding: 1rem 0 0.8rem 0; border-bottom: 1px solid #E5E7EB; margin-bottom: 1.25rem;">
-        <h2 style="font-size: 1.35rem; font-weight: 700; margin: 0; color: #111827;">Export analytics</h2>
-        <p style="font-size: 0.9rem; color: #6B7280; margin: 0.25rem 0 0 0;">Download non-identifying report metadata for school board or compliance records.</p>
+    st.markdown(f"""
+    <div style="padding: 1.2rem 0 1rem 0; border-bottom: 1px solid var(--sb-border); margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="sb-icon-box" style="width: 40px; height: 40px;">
+                {icon_svg("download", size=22, color="#4F46E5")}
+            </div>
+            <div>
+                <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: #0F172A;">Export analytics</h2>
+                <p style="font-size: 0.92rem; color: #64748B; margin: 0.15rem 0 0 0;">Download non-identifying report metadata for school board or compliance records.</p>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
