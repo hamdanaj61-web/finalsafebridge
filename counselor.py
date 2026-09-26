@@ -1,5 +1,5 @@
 """Counselor workspace: overview, high-stakes report triage, distinct content styling, and appointments.
-Zero emoji, outline SVG icons, calm flat aesthetics, sentence case throughout.
+Vibrant modern aesthetics with clear human-led safeguarding controls.
 """
 from datetime import datetime, timezone
 import streamlit as st
@@ -12,8 +12,8 @@ def render_counselor(user):
     urgent = (lambda r: r['n'] if r else 0)(one("SELECT count(*) n FROM reports WHERE priority='High' AND status='Pending Review'"))
     if urgent:
         st.sidebar.markdown(f"""
-        <div style="background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 8px; padding: 0.65rem 0.85rem; margin-bottom: 0.75rem; font-size: 0.84rem; color: #92400E; display: flex; align-items: center; gap: 0.4rem;">
-            {icon_svg("alert", size=16, color="#92400E")}
+        <div style="background: var(--sb-amber-light); border: 1.5px solid var(--sb-amber-border); border-radius: 12px; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.86rem; color: var(--sb-amber-dark); display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
+            {icon_svg("alert", size=18, color="#D97706")}
             <span><strong>{urgent} high-priority</strong> report(s) pending review</span>
         </div>
         """, unsafe_allow_html=True)
@@ -21,7 +21,7 @@ def render_counselor(user):
     page = st.sidebar.radio(
         "Counselor workspace",
         ["Overview", "Reports", "Appointments", "Check-ins"],
-        format_func=lambda p: {"Overview": "Overview", "Reports": "Reports", "Appointments": "Appointments", "Check-ins": "Check-ins"}[p]
+        format_func=lambda p: {"Overview": "Overview", "Reports": "Incident reports", "Appointments": "Appointment requests", "Check-ins": "Weekly check-ins"}[p]
     )
     if page == "Overview": overview()
     elif page == "Reports": reports_page(user)
@@ -29,10 +29,14 @@ def render_counselor(user):
     else: checkins_page()
 
 def overview():
-    st.markdown("""
-    <div style="padding: 1.25rem 0 1rem 0; border-bottom: 1px solid #E5E7EB; margin-bottom: 1.5rem;">
-        <h1 style="font-size: 1.6rem; font-weight: 700; margin: 0 0 0.25rem 0; color: #111827;">Counselor workspace</h1>
-        <p style="font-size: 0.95rem; color: #6B7280; margin: 0;">Prioritize student care with a clear, human-led view of support needs.</p>
+    st.markdown(f"""
+    <div class="sb-page-header">
+        <div class="sb-pill-badge">
+            {icon_svg("shield_check", size=14, color="#4F46E5")}
+            <span>Counselor Safeguarding Workspace</span>
+        </div>
+        <h1>Counselor workspace</h1>
+        <p>Prioritize student care with a clear, human-led view of support needs and incident reports.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -48,18 +52,25 @@ def overview():
         with col:
             st.metric(label, value)
 
-    # Calm standing inline note (not an alarming banner)
+    # Calm standing inline note
     st.markdown(f"""
-    <div class="sb-ai-disclaimer" style="margin-top: 1.5rem;">
+    <div class="sb-ai-disclaimer" style="margin-top: 1.8rem;">
         <strong>Safeguarding notice:</strong> AI recommendations are organizational aids only. Counselors make all safeguarding decisions, evaluations, and student outreach.
     </div>
     """, unsafe_allow_html=True)
 
 def reports_page(user):
-    st.markdown("""
-    <div style="padding: 1rem 0 0.8rem 0; border-bottom: 1px solid #E5E7EB; margin-bottom: 1.25rem;">
-        <h2 style="font-size: 1.35rem; font-weight: 700; margin: 0; color: #111827;">Incident reports</h2>
-        <p style="font-size: 0.9rem; color: #6B7280; margin: 0.25rem 0 0 0;">Review, categorize, and document follow-up actions on student concerns.</p>
+    st.markdown(f"""
+    <div style="padding: 1.2rem 0 1rem 0; border-bottom: 1px solid var(--sb-border); margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="sb-icon-box" style="width: 40px; height: 40px;">
+                {icon_svg("file_text", size=22, color="#4F46E5")}
+            </div>
+            <div>
+                <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: #0F172A;">Incident reports</h2>
+                <p style="font-size: 0.92rem; color: #64748B; margin: 0.15rem 0 0 0;">Review, categorize, and document follow-up actions on student concerns.</p>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -71,10 +82,8 @@ def reports_page(user):
     filtered = [r for r in rows if (status == "All" or r['status'] == status) and (not search or search.lower() in str(r).lower())]
 
     if filtered:
-        # Format table with clear accessible labels and sentence case headers
         df = pd.DataFrame(filtered).copy()
         df["reporter"] = df.apply(lambda row: "Anonymous" if row["anonymous"] else (row.get("display_name") or "Unknown"), axis=1)
-        # Drop raw fields for clean display
         table_df = df[["id", "reporter", "category", "location", "priority", "status", "created_at"]].copy()
         table_df.columns = ["Report ID", "Reporter handle", "Category", "Location", "Priority", "Status", "Date"]
         st.dataframe(table_df, use_container_width=True, hide_index=True)
@@ -88,30 +97,30 @@ def reports_page(user):
 
     with st.container(border=True):
         st.markdown(f"""
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB; padding-bottom: 0.75rem; margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8F0; padding-bottom: 0.85rem; margin-bottom: 1.2rem;">
             <div>
-                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #111827;">Report #{rid}</h3>
-                <span style="font-size: 0.85rem; color: #6B7280;">Reporter: {'Anonymous' if report['anonymous'] else (report.get('display_name') or 'Confidential handle')}</span>
+                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #0F172A;">Report #{rid}</h3>
+                <span style="font-size: 0.88rem; color: #64748B;">Reporter: {'Anonymous' if report['anonymous'] else (report.get('display_name') or 'Confidential handle')}</span>
             </div>
-            <div>
+            <div style="display: flex; gap: 0.5rem;">
                 <span class="sb-badge sb-badge-neutral">{report.get('status', 'Pending Review')}</span>
-                <span class="sb-badge sb-badge-{report.get('priority', 'Medium').lower()}">{report.get('priority', 'Medium')} priority</span>
+                <span class="sb-badge {'sb-badge-danger' if report.get('priority') == 'High' else 'sb-badge-warning'}">{report.get('priority', 'Medium')} priority</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
         # Clear visual separation: Original Report
-        st.markdown("<p style='font-size: 0.85rem; font-weight: 600; color: #4B5563; margin-bottom: 0.35rem;'>Original student report</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 0.88rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem;'>Original student report</p>", unsafe_allow_html=True)
         st.markdown(f"<div class='sb-content-original'>{report['original_report']}</div>", unsafe_allow_html=True)
 
-        # Clear visual separation: Incident Summary (AI / Automated Categorization)
-        st.markdown("<p style='font-size: 0.85rem; font-weight: 600; color: #4B5563; margin-bottom: 0.35rem;'>Structured incident summary</p>", unsafe_allow_html=True)
+        # Clear visual separation: Incident Summary
+        st.markdown("<p style='font-size: 0.88rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem;'>Structured incident summary</p>", unsafe_allow_html=True)
         st.markdown(f"<div class='sb-content-ai'>{report.get('incident_summary') or 'No summary provided.'}</div>", unsafe_allow_html=True)
 
         # Calm inline disclaimer note
         st.markdown(f"""
         <div class="sb-ai-disclaimer">
-            {icon_svg("info", size=14, color="#6B7280")}
+            {icon_svg("info", size=14, color="#4F46E5")}
             AI recommendation only, human review required.
         </div>
         """, unsafe_allow_html=True)
@@ -121,9 +130,12 @@ def reports_page(user):
         c2.metric("Location", report.get('location', 'Unspecified'))
         c3.metric("Suggested priority", report.get('priority', 'Medium'))
 
-        if report.get('evidence_name'):
-            st.download_button("Download attached evidence", report['evidence'], file_name=report['evidence_name'], type="secondary")
-        st.download_button("Download review PDF", report_pdf(report), file_name=f"safebridge-report-{rid}.pdf", mime="application/pdf", type="secondary")
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            if report.get('evidence_name'):
+                st.download_button("Download attached evidence", report['evidence'], file_name=report['evidence_name'], type="secondary", use_container_width=True)
+        with col_d2:
+            st.download_button("Download review PDF", report_pdf(report), file_name=f"safebridge-report-{rid}.pdf", mime="application/pdf", type="secondary", use_container_width=True)
 
         # Counselor AI suggested actions
         action_key = f"counselor_actions_{rid}"
@@ -139,37 +151,36 @@ def reports_page(user):
 
         if action_data := st.session_state.get(action_key):
             st.markdown(f"""
-            <div class="sb-notice-block" style="border-left: 3px solid #639922; margin-top: 0.75rem;">
+            <div class="sb-notice-block" style="border-left: 3px solid #10B981; margin-top: 0.75rem;">
                 <div class="sb-notice-title">
                     <span>Suggested actions & risk evaluation</span>
-                    <span class="sb-badge sb-badge-{action_data.get('risk_level', 'Medium').lower()}">{action_data.get('risk_level', 'Medium')} risk</span>
+                    <span class="sb-badge sb-badge-accent">{action_data.get('risk_level', 'Medium')} risk</span>
                 </div>
                 <div class="sb-notice-body">{action_data.get('risk_rationale', '')}</div>
             </div>
             """, unsafe_allow_html=True)
-            urgency_class = {"Immediate": "sb-badge-high", "Soon": "sb-badge-medium", "Routine": "sb-badge-low"}
             for act in action_data.get("actions", []):
                 st.markdown(f"""
-                <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem;">
+                <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 0.85rem 1.1rem; margin-bottom: 0.5rem; box-shadow: var(--sb-shadow-sm);">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong style="color: #111827; font-size: 0.88rem;">{act['title']}</strong>
-                        <span class="sb-badge {urgency_class.get(act['urgency'], 'sb-badge-neutral')}">{act['urgency']}</span>
+                        <strong style="color: #0F172A; font-size: 0.92rem;">{act['title']}</strong>
+                        <span class="sb-badge sb-badge-neutral">{act['urgency']}</span>
                     </div>
-                    <p style="color: #4B5563; font-size: 0.83rem; margin: 0.25rem 0 0 0;">{act['detail']}</p>
+                    <p style="color: #64748B; font-size: 0.85rem; margin: 0.3rem 0 0 0;">{act['detail']}</p>
                 </div>
                 """, unsafe_allow_html=True)
 
         # Clear visual separation: Counselor Notes
-        st.markdown("<p style='font-size: 0.85rem; font-weight: 600; color: #4B5563; margin-top: 1.25rem; margin-bottom: 0.35rem;'>Counselor review history & notes</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 0.88rem; font-weight: 700; color: #334155; margin-top: 1.5rem; margin-bottom: 0.35rem;'>Counselor review history & notes</p>", unsafe_allow_html=True)
         notes = query("SELECT n.note,n.created_at,s.display_name FROM counselor_notes n JOIN students s ON s.id=n.counselor_id WHERE n.report_id=? ORDER BY n.created_at DESC", (rid,))
         if notes:
             for n in notes:
                 st.markdown(f"""
                 <div class='sb-content-notes'>
-                    <div style="font-size: 0.78rem; color: #64748B; margin-bottom: 0.25rem;">
+                    <div style="font-size: 0.8rem; color: #64748B; margin-bottom: 0.25rem;">
                         <strong>{n.get('display_name', 'Counselor')}</strong> · {n.get('created_at', '')[:16]}
                     </div>
-                    <div style="font-size: 0.88rem; color: #1E293B;">{n['note']}</div>
+                    <div style="font-size: 0.92rem; color: #1E293B;">{n['note']}</div>
                 </div>
                 """, unsafe_allow_html=True)
         else:
@@ -180,7 +191,6 @@ def reports_page(user):
             curr_status_idx = statuses.index(report['status']) if report.get('status') in statuses else 0
             new_status = st.selectbox("Update status", statuses, index=curr_status_idx)
             note = st.text_area("Add counselor note", max_chars=3000, placeholder="Document actions taken, interviews, or safeguarding escalations...")
-            # Primary action button
             saved = st.form_submit_button("Save review", type="primary")
 
         if saved:
@@ -192,10 +202,17 @@ def reports_page(user):
             st.rerun()
 
 def appointments_page():
-    st.markdown("""
-    <div style="padding: 1rem 0 0.8rem 0; border-bottom: 1px solid #E5E7EB; margin-bottom: 1.25rem;">
-        <h2 style="font-size: 1.35rem; font-weight: 700; margin: 0; color: #111827;">Appointment requests</h2>
-        <p style="font-size: 0.9rem; color: #6B7280; margin: 0.25rem 0 0 0;">Manage student meeting requests and follow-ups.</p>
+    st.markdown(f"""
+    <div style="padding: 1.2rem 0 1rem 0; border-bottom: 1px solid var(--sb-border); margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="sb-icon-box" style="width: 40px; height: 40px;">
+                {icon_svg("calendar", size=22, color="#4F46E5")}
+            </div>
+            <div>
+                <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: #0F172A;">Appointment requests</h2>
+                <p style="font-size: 0.92rem; color: #64748B; margin: 0.15rem 0 0 0;">Manage student meeting requests and follow-ups.</p>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -220,19 +237,29 @@ def appointments_page():
         st.caption("No appointment requests recorded.")
 
 def checkins_page():
-    st.markdown("""
-    <div style="padding: 1rem 0 0.8rem 0; border-bottom: 1px solid #E5E7EB; margin-bottom: 1.25rem;">
-        <h2 style="font-size: 1.35rem; font-weight: 700; margin: 0; color: #111827;">Weekly wellbeing signals</h2>
-        <p style="font-size: 0.9rem; color: #6B7280; margin: 0.25rem 0 0 0;">Aggregated signals to notice where outreach may be supportive. Not clinical diagnoses.</p>
+    st.markdown(f"""
+    <div style="padding: 1.2rem 0 1rem 0; border-bottom: 1px solid var(--sb-border); margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="sb-icon-box" style="width: 40px; height: 40px; background: #ECFDF5; color: #10B981;">
+                {icon_svg("smile", size=22, color="#10B981")}
+            </div>
+            <div>
+                <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: #0F172A;">Weekly wellbeing signals</h2>
+                <p style="font-size: 0.92rem; color: #64748B; margin: 0.15rem 0 0 0;">Aggregated signals to notice where outreach may be supportive. Not clinical diagnoses.</p>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
     rows = query("SELECT c.week_start,c.mood,c.mood_label,s.display_name FROM checkins c JOIN students s ON c.student_id=s.id ORDER BY c.created_at DESC")
     if rows:
         df = pd.DataFrame(rows).copy()
-        df.columns = ["Week start", "Mood score", "Mood label", "Student handle"]
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        cols = ["week_start", "mood", "mood_label", "display_name"]
+        df_disp = df[[c for c in cols if c in df.columns]].copy()
+        df_disp.columns = ["Week start", "Mood score", "Mood label", "Student handle"][:len(df_disp.columns)]
+        st.dataframe(df_disp, use_container_width=True, hide_index=True)
         st.caption("Student private notes are kept strictly confidential unless an active safeguarding review is opened.")
-        st.bar_chart(pd.DataFrame(rows).groupby('mood_label').size())
+        if "mood_label" in df.columns:
+            st.bar_chart(df.groupby('mood_label').size())
     else:
         st.caption("No weekly check-ins recorded yet.")
