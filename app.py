@@ -61,7 +61,7 @@ with st.sidebar:
     logo_path = Path("/home/ubuntu/finalsafebridge/dps-rak-logo.png")
 
     if logo_path.exists():
-        st.image(str(logo_path), width=80)
+        st.image(str(logo_path), width=100)
     else:
         st.error("Logo not found")
 
