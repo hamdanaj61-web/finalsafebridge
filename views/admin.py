@@ -218,6 +218,18 @@ def classes_page():
         df_disp = df[["id", "name", "created_at"]].copy()
         df_disp.columns = ["ID", "Class Name", "Created at"]
         st.dataframe(df_disp, use_container_width=True, hide_index=True)
+        
+        st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
+        st.subheader("Students by Class")
+        for cls in classes:
+            with st.expander(f"Class: {cls['name']}", expanded=False):
+                students = query("SELECT username, display_name, role FROM students WHERE class_id=%s ORDER BY display_name", (cls['id'],))
+                if students:
+                    df_students = pd.DataFrame(students)
+                    df_students.columns = ["Username", "Pseudonym / Handle", "Role"]
+                    st.dataframe(df_students, use_container_width=True, hide_index=True)
+                else:
+                    st.caption(f"No students assigned to {cls['name']} yet.")
     else:
         st.caption("No classes created yet.")
 
