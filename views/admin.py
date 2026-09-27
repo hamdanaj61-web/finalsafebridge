@@ -247,6 +247,59 @@ def classes_page():
                 st.success(f"Class '{new_name.strip()}' created successfully.")
                 st.rerun()
 
+    if classes:
+        class_opts = {c['id']: c['name'] for c in classes}
+        with st.expander("Bulk create students", expanded=False):
+            with st.form("bulk_create_form"):
+                st.markdown("<p style='font-size: 0.92rem; color: #64748B;'>Quickly provision multiple student accounts for a class.</p>", unsafe_allow_html=True)
+                selected_class_id = st.selectbox("Select Class", list(class_opts.keys()), format_func=lambda x: class_opts[x])
+                csv_data = st.text_area("Paste student details (Comma separated)", help="Format: username, pseudonym (e.g. jdoe, Student-105)\nOne student per line.")
+                default_password = st.text_input("Default Password for all", type="password")
+                submitted = st.form_submit_button("Bulk Create", type="primary")
+            
+            if submitted:
+                if len(default_password) < 10:
+                    st.error("Default password must be at least 10 characters long.")
+                elif not csv_data.strip():
+                    st.error("Please provide student details.")
+                else:
+                    from auth import hash_password
+                    now_iso = datetime.now(timezone.utc).isoformat()
+                    lines = csv_data.strip().split('\n')
+                    success_count = 0
+                    errors = []
+                    
+                    with st.spinner("Provisioning accounts..."):
+                        for line in lines:
+                            if not line.strip():
+                                continue
+                            parts = [p.strip() for p in line.split(',')]
+                            if len(parts) >= 2:
+                                uname = parts[0].lower()
+                                dname = parts[1]
+                                if not uname or not dname:
+                                    errors.append(f"Missing username or handle in line: {line}")
+                                    continue
+                                if one("SELECT 1 FROM students WHERE username=?", (uname,)):
+                                    errors.append(f"Username '{uname}' already exists.")
+                                    continue
+                                
+                                pwd_hash = hash_password(default_password)
+                                execute(
+                                    "INSERT INTO students(username,password_hash,display_name,role,class_id,created_at,force_password_change) VALUES(?,?,?,?,?,?,?)",
+                                    (uname, pwd_hash, dname, 'student', selected_class_id, now_iso, 1),
+                                )
+                                success_count += 1
+                            else:
+                                errors.append(f"Invalid format: {line}")
+                    
+                    if success_count > 0:
+                        st.success(f"Successfully created {success_count} student accounts in class {class_opts[selected_class_id]}. They must change their password on first login.")
+                    if errors:
+                        st.error("Some accounts could not be created:")
+                        for e in errors:
+                            st.write(f"- {e}")
+
 
 # ── Settings Page ────────────────────────────────────────────────────────────
 def settings_page():
