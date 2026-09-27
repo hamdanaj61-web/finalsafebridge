@@ -12,10 +12,11 @@ from icons import icon_svg
 def render_admin(user):
     page = st.sidebar.radio(
         "Administrator analytics",
-        ["Dashboard", "Users", "Settings", "QR access", "Export"],
+        ["Dashboard", "Users", "Classes", "Settings", "QR access", "Export"],
         format_func=lambda x: {
             "Dashboard": "Dashboard",
             "Users":     "User management",
+            "Classes":   "Class management",
             "Settings":  "Platform settings",
             "QR access": "QR quick access",
             "Export":    "Export analytics",
@@ -23,6 +24,7 @@ def render_admin(user):
     )
     if page == "Dashboard": dashboard()
     elif page == "Users":    users_page(user)
+    elif page == "Classes":  classes_page()
     elif page == "Settings": settings_page()
     elif page == "QR access": qr_page()
     else: export_page()
@@ -108,23 +110,28 @@ def users_page(current_admin):
     </div>
     """, unsafe_allow_html=True)
 
-    users = query("SELECT id, username, display_name, role, active, created_at FROM students ORDER BY role, display_name")
+    users = query("SELECT s.id, s.username, s.display_name, s.role, s.active, c.name as class_name, s.created_at FROM students s LEFT JOIN classes c ON s.class_id = c.id ORDER BY s.role, s.display_name")
     if users:
         df = pd.DataFrame(users).copy()
         df["status"] = df["active"].map({1: "Active", 0: "Inactive"})
-        df_disp = df[["id", "username", "display_name", "role", "status", "created_at"]].copy()
-        df_disp.columns = ["ID", "Username", "Pseudonym / Handle", "Role", "Status", "Created at"]
+        df_disp = df[["id", "username", "display_name", "role", "class_name", "status", "created_at"]].copy()
+        df_disp.columns = ["ID", "Username", "Pseudonym / Handle", "Role", "Class", "Status", "Created at"]
         st.dataframe(df_disp, use_container_width=True, hide_index=True)
 
     st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
 
-    # ── Create new user ──────────────────────────────────────────────────────
+    classes = query("SELECT id, name FROM classes ORDER BY name")
+    class_opts = {c['id']: c['name'] for c in classes}
+
     with st.expander("Create new user", expanded=False):
         with st.form("create_user_form"):
             c1, c2 = st.columns(2)
             new_username = c1.text_input("Username (login ID)")
             new_display_name = c2.text_input("Handle / Nickname (Pseudonym — not real name)")
             new_role = st.selectbox("Role", ["student", "counselor", "admin"])
+            new_class_id = None
+            if class_opts:
+                new_class_id = st.selectbox("Class (For students)", [None] + list(class_opts.keys()), format_func=lambda x: class_opts[x] if x else "None (No Class)")
             new_password = st.text_input("Initial password (minimum 10 characters)", type="password")
             confirm_password = st.text_input("Confirm password", type="password")
             created = st.form_submit_button("Create user", type="primary")
@@ -142,8 +149,8 @@ def users_page(current_admin):
                 from auth import hash_password
                 now_iso = datetime.now(timezone.utc).isoformat()
                 execute(
-                    "INSERT INTO students(username,password_hash,display_name,role,created_at,force_password_change) VALUES(?,?,?,?,?,?)",
-                    (new_username.strip().lower(), hash_password(new_password), new_display_name.strip(), new_role, now_iso, 1),
+                    "INSERT INTO students(username,password_hash,display_name,role,class_id,created_at,force_password_change) VALUES(?,?,?,?,?,?,?)",
+                    (new_username.strip().lower(), hash_password(new_password), new_display_name.strip(), new_role, new_class_id if new_role == 'student' else None, now_iso, 1),
                 )
                 st.success(f"User '{new_username.strip().lower()}' created successfully. Password change will be required on first login.")
                 st.rerun()
@@ -188,6 +195,46 @@ def users_page(current_admin):
                 execute("UPDATE students SET active=? WHERE id=?", (0 if is_active else 1, selected_id))
                 st.success(f"Account {'deactivated' if is_active else 'reactivated'}.")
                 st.rerun()
+
+# ── Class Management ────────────────────────────────────────────────────────
+def classes_page():
+    st.markdown(f"""
+    <div style="padding: 1.2rem 0 1rem 0; border-bottom: 1px solid var(--sb-border); margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="sb-icon-box" style="width: 40px; height: 40px;">
+                {icon_svg("user", size=22, color="#4F46E5")}
+            </div>
+            <div>
+                <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: #0F172A;">Class management</h2>
+                <p style="font-size: 0.92rem; color: #64748B; margin: 0.15rem 0 0 0;">Create classes to assign students to.</p>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    classes = query("SELECT id, name, created_at FROM classes ORDER BY name")
+    if classes:
+        df = pd.DataFrame(classes)
+        df_disp = df[["id", "name", "created_at"]].copy()
+        df_disp.columns = ["ID", "Class Name", "Created at"]
+        st.dataframe(df_disp, use_container_width=True, hide_index=True)
+    else:
+        st.caption("No classes created yet.")
+
+    with st.expander("Create new class", expanded=False):
+        with st.form("create_class_form"):
+            new_name = st.text_input("Class Name (e.g. 6-A, 10-B)")
+            created = st.form_submit_button("Create class", type="primary")
+        if created:
+            if not new_name.strip():
+                st.error("Class name is required.")
+            elif one("SELECT 1 FROM classes WHERE name=?", (new_name.strip(),)):
+                st.error("Class already exists.")
+            else:
+                execute("INSERT INTO classes(name) VALUES(?)", (new_name.strip(),))
+                st.success(f"Class '{new_name.strip()}' created successfully.")
+                st.rerun()
+
 
 # ── Settings Page ────────────────────────────────────────────────────────────
 def settings_page():
