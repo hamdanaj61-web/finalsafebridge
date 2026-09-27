@@ -14,7 +14,7 @@ def render_login(login_fn):
             <span>School Safeguarding & Wellbeing Platform</span>
         </div>
         <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.2rem; margin-bottom: 0.5rem;">
-            {school_mark_svg(46)}
+            <img src="dps-rak-logo.png" width="46" style="border-radius: 10px;">
             <div>
                 <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.025em; margin: 0; color: #0F172A;">SafeBridge</h1>
             </div>
