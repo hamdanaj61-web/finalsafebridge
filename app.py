@@ -58,7 +58,7 @@ def _check_session_timeout():
 
 # ── Sidebar Branding (Logo mark, school name, sentence case, no emoji) ───────
 with st.sidebar:
-    logo = os.getenv("SCHOOL_LOGO_PATH")
+    logo = os.getenv("dps-rak-logo.png")
     if logo and Path(logo).is_file():
         st.image(logo, width=40)
     else:
