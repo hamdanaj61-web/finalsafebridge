@@ -32,6 +32,16 @@ def is_supabase_connected() -> tuple[bool, str]:
 
 def init_db():
     try:
+        # Run schema automatically
+        schema_path = os.path.join(os.path.dirname(__file__), "supabase_schema.sql")
+        if os.path.exists(schema_path):
+            with open(schema_path, "r", encoding="utf-8") as f:
+                schema_sql = f.read()
+            with get_pg_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(schema_sql)
+                conn.commit()
+
         with get_pg_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT key FROM settings WHERE key='allow_anonymous_reports'")
