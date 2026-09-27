@@ -4,6 +4,7 @@ from ai import analyze_report
 from database import create_report, get_setting
 from icons import icon_svg, school_mark_svg
 from views.guided_report import render_guided_report_wizard
+import base64
 
 
 
@@ -16,7 +17,7 @@ def render_login(login_fn):
             <span>School Safeguarding & Wellbeing Platform</span>
         </div>
         <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.2rem; margin-bottom: 0.5rem;">
-            <img src="dps-rak-logo.png" width="100" style="border-radius: 10px;">
+            <img src="data:image/png;base64,{base64.b64encode(open('dps-rak-logo.png','rb').read()).decode()}" width="100" style="border-radius:10px;">
             <div>
                 <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.025em; margin: 0; color: #0F172A;">SafeBridge</h1>
             </div>
