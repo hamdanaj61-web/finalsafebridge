@@ -58,11 +58,12 @@ def _check_session_timeout():
 
 # ── Sidebar Branding (Logo mark, school name, sentence case, no emoji) ───────
 with st.sidebar:
-    logo = os.getenv("dps-rak-logo.png")
-    if logo and Path(logo).is_file():
-        st.image(logo, width=40)
+    logo_path = Path("/home/ubuntu/finalsafebridge/dps-rak-logo.png")
+
+    if logo_path.exists():
+        st.image(str(logo_path), width=80)
     else:
-        st.markdown(school_mark_svg(40), unsafe_allow_html=True)
+        st.error("Logo not found")
 
     st.markdown(f"""
     <div style="margin-top: 0.45rem; margin-bottom: 0.2rem;">
